@@ -3749,6 +3749,10 @@ pub struct RunArgs {
     )]
     pub python: Option<Maybe<String>>,
 
+    /// A string of options to pass to the Python interpreter.
+    #[arg(long, help_heading = "Python options", allow_hyphen_values = true)]
+    pub python_options: Option<String>,
+
     /// Whether to show resolver and installer output from any environment modifications [env:
     /// UV_SHOW_RESOLUTION=]
     ///

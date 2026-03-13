@@ -2090,6 +2090,7 @@ async fn run_project(
                 args.editable,
                 args.modifications,
                 args.python,
+                args.python_options,
                 args.python_platform,
                 args.install_mirrors,
                 args.settings,

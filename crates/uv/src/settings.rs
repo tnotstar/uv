@@ -551,6 +551,7 @@ pub(crate) struct RunSettings {
     pub(crate) active: Option<bool>,
     pub(crate) no_sync: bool,
     pub(crate) python: Option<String>,
+    pub(crate) python_options: Option<String>,
     pub(crate) python_platform: Option<TargetTriple>,
     pub(crate) install_mirrors: PythonInstallMirrors,
     pub(crate) refresh: Refresh,
@@ -609,6 +610,7 @@ impl RunSettings {
             package,
             no_project,
             python,
+            python_options,
             python_platform,
             show_resolution,
             env_file,
@@ -685,6 +687,7 @@ impl RunSettings {
             no_sync: no_sync.is_enabled(),
             active: flag(active, no_active, "active"),
             python: python.and_then(Maybe::into_option),
+            python_options,
             python_platform,
             refresh: Refresh::from(refresh),
             settings: ResolverInstallerSettings::combine(

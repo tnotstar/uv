@@ -97,6 +97,7 @@ pub(crate) async fn run(
     editable: Option<EditableMode>,
     modifications: Modifications,
     python: Option<String>,
+    python_options: Option<String>,
     python_platform: Option<TargetTriple>,
     install_mirrors: PythonInstallMirrors,
     settings: ResolverInstallerSettings,
@@ -1283,7 +1284,7 @@ hint: If you are running a script with `{}` in the shebang, you may need to incl
     };
 
     debug!("Running `{command}`");
-    let mut process = command.as_command(interpreter);
+    let mut process = command.as_command(interpreter, python_options.as_deref());
 
     // Construct the `PATH` environment variable.
     let new_path = std::env::join_paths(
@@ -1476,10 +1477,13 @@ impl RunCommand {
     }
 
     /// Convert a [`RunCommand`] into a [`Command`].
-    fn as_command(&self, interpreter: &Interpreter) -> Command {
+    fn as_command(&self, interpreter: &Interpreter, python_options: Option<&str>) -> Command {
         match self {
             Self::Python(args) => {
                 let mut process = Command::new(interpreter.sys_executable());
+                if let Some(options) = python_options {
+                    process.args(options.split_whitespace());
+                }
                 process.args(args);
                 process
             }
@@ -1495,6 +1499,9 @@ impl RunCommand {
                 // Otherwise, invoke `python <module>`
                 } else {
                     let mut process = Command::new(interpreter.sys_executable());
+                    if let Some(options) = python_options {
+                        process.args(options.split_whitespace());
+                    }
                     process.arg(path);
                     process.args(args);
                     process
@@ -1502,18 +1509,27 @@ impl RunCommand {
             }
             Self::PythonScript(target, args) | Self::PythonZipapp(target, args) => {
                 let mut process = Command::new(interpreter.sys_executable());
+                if let Some(options) = python_options {
+                    process.args(options.split_whitespace());
+                }
                 process.arg(target);
                 process.args(args);
                 process
             }
             Self::PythonRemote(.., target, args) => {
                 let mut process = Command::new(interpreter.sys_executable());
+                if let Some(options) = python_options {
+                    process.args(options.split_whitespace());
+                }
                 process.arg(target.path());
                 process.args(args);
                 process
             }
             Self::PythonModule(module, args) => {
                 let mut process = Command::new(interpreter.sys_executable());
+                if let Some(options) = python_options {
+                    process.args(options.split_whitespace());
+                }
                 process.arg("-m");
                 process.arg(module);
                 process.args(args);
@@ -1534,12 +1550,18 @@ impl RunCommand {
                     .unwrap_or_else(|| python_executable.to_path_buf());
 
                 let mut process = Command::new(&pythonw_executable);
+                if let Some(options) = python_options {
+                    process.args(options.split_whitespace());
+                }
                 process.arg(target);
                 process.args(args);
                 process
             }
             Self::PythonStdin(script, args) => {
                 let mut process = Command::new(interpreter.sys_executable());
+                if let Some(options) = python_options {
+                    process.args(options.split_whitespace());
+                }
                 process.arg("-c");
 
                 #[cfg(unix)]
@@ -1572,6 +1594,9 @@ impl RunCommand {
                     .unwrap_or_else(|| python_executable.to_path_buf());
 
                 let mut process = Command::new(&pythonw_executable);
+                if let Some(options) = python_options {
+                    process.args(options.split_whitespace());
+                }
                 process.arg("-c");
 
                 #[cfg(unix)]
@@ -1598,7 +1623,13 @@ impl RunCommand {
                 process.args(args);
                 process
             }
-            Self::Empty => Command::new(interpreter.sys_executable()),
+            Self::Empty => {
+                let mut process = Command::new(interpreter.sys_executable());
+                if let Some(options) = python_options {
+                    process.args(options.split_whitespace());
+                }
+                process
+            }
         }
     }
 
